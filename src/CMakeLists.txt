@@ -14,7 +14,10 @@ find_package(glfw3 REQUIRED CONFIG)
 set(GLEW_USE_STATIC_LIBS ON)
 find_package(GLEW REQUIRED CONFIG)
 
-set(SRCS main.cpp)
+set(SRCS
+        main.cpp
+        glad.c
+)
 
 if(APPLE)
     # create bundle on apple compiles
@@ -27,4 +30,5 @@ else()
     add_executable(main ${SRCS} main.exe.manifest)
 endif()
 
-target_link_libraries(main PRIVATE GLEW::glew_s glfw)
+target_include_directories(main PUBLIC ../deps)
+target_link_libraries(main PRIVATE GLEW::glew_s glfw -static)
