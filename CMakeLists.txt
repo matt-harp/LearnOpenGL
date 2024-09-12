@@ -3,12 +3,23 @@ project(learn_opengl)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(glfw3 3.3 REQUIRED)
+# ExternalProject base
+set_property(DIRECTORY PROPERTY EP_BASE ${CMAKE_BINARY_DIR}/subprojects)
 
-file(GLOB_RECURSE SOURCES src/*.cpp src/*.c src/*.h)
+set(STAGED_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/stage)
+set(EP_SOURCE_DIR_PREFIX ${CMAKE_BINARY_DIR}/subprojects/Source)
 
-# message(${SOURCES})
-include_directories(${PROJECT_SOURCE_DIR}/include)
-add_executable(learn_opengl ${SOURCES})
+add_subdirectory(external)
 
-target_link_libraries(learn_opengl glfw)
+include(ExternalProject)
+ExternalProject_Add(${PROJECT_NAME}_core
+        DEPENDS GLFW_external GLEW_external glm_external
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
+        CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DSTAGED_INSTALL_PREFIX=${STAGED_INSTALL_PREFIX}
+        CMAKE_CACHE_ARGS
+        -DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
+        BUILD_ALWAYS ON
+        INSTALL_COMMAND ""
+)
