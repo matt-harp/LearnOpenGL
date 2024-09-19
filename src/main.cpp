@@ -1,5 +1,5 @@
 #include <iostream>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -20,7 +20,7 @@ int main() {
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;

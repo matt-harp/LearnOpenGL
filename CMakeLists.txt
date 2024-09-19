@@ -3,23 +3,23 @@ project(learn_opengl)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# ExternalProject base
-set_property(DIRECTORY PROPERTY EP_BASE ${CMAKE_BINARY_DIR}/subprojects)
+# If you do not set the CMAKE_INSTALL_PREFIX variable, the default path on Windows will point to "Program Files",
+# where you cannot copy files without administrator rights.
+# For easier out-of-the-box use, this variable is set manually.
+set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install)
 
-set(STAGED_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/stage)
-set(EP_SOURCE_DIR_PREFIX ${CMAKE_BINARY_DIR}/subprojects/Source)
+# Put all compiled targets into one folder for easier use in the CLion IDE.
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_subdirectory(external)
+set(CMAKE_MODULE_PATH
+        ${CMAKE_MODULE_PATH}
+        ${CMAKE_SOURCE_DIR}/cmake)
 
-include(ExternalProject)
-ExternalProject_Add(${PROJECT_NAME}_core
-        DEPENDS GLFW_external GLEW_external glm_external
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
-        CMAKE_ARGS
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DSTAGED_INSTALL_PREFIX=${STAGED_INSTALL_PREFIX}
-        CMAKE_CACHE_ARGS
-        -DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
-        BUILD_ALWAYS ON
-        INSTALL_COMMAND ""
-)
+include(CPM)
+include(FindTargets)
+include(MakeFolder)
+include(ThirdParty)
+
+add_subdirectory(src)

@@ -1,34 +1,47 @@
-cmake_minimum_required(VERSION 3.22)
-project(learn_opengl_core)
+      #-----------------------------------------------------------------------------#
+      # define the asset path in c++
+      set(ASSETS_DIR ${PROJECT_SOURCE_DIR}/assets)
+      set(ASSETS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/assets)
+      file(COPY ${ASSETS_DIR} DESTINATION ${CMAKE_INSTALL_PREFIX})
+      # Additionally, install assets for QtCreator and CLion IDE.
+      file(COPY ${ASSETS_DIR} DESTINATION ${CMAKE_BINARY_DIR})
 
-set(CMAKE_CXX_STANDARD 20)
+      #-----------------------------------------------------------------------------#
+      # list of all source files
+      set(SRC_DIR ${PROJECT_SOURCE_DIR}/src)
+      file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS "${SRC_DIR}/*.h")
+      file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "${SRC_DIR}/*.cpp")
+      file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS "${ASSETS_DIR}/shaders/*.glsl")
 
-file(TO_NATIVE_PATH "${STAGED_INSTALL_PREFIX}/lib/cmake/glfw3" glfw3_DIR)
-file(TO_NATIVE_PATH "${STAGED_INSTALL_PREFIX}/lib/cmake/glew" GLEW_DIR)
+      #-----------------------------------------------------------------------------#
+      # list all files that will either be used for compilation or that should show
+      # up in the ide of your choice
+      add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES} ${SHADER_FILES})
+      GroupSourcesByFolder(${PROJECT_NAME})
+      target_include_directories(${PROJECT_NAME} PUBLIC src)
+      set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 11) # use c++11
 
-message(STATUS "glfw3_DIR is... ${glfw3_DIR}")
-message(STATUS "GLEW_DIR is... ${GLEW_DIR}")
+      file(RELATIVE_PATH
+              ASSETS_LOCATION
+              ${CMAKE_INSTALL_PREFIX}/bin
+              ${ASSETS_INSTALL_DIR}
+      )
+      target_compile_definitions(${PROJECT_NAME} PRIVATE ASSETS_PATH="${ASSETS_LOCATION}")
 
-find_package(glfw3 REQUIRED CONFIG)
+      if(MSVC)
+          set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY VS_DEBUGGER_COMMAND ${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:${CMAKE_PROJECT_NAME}>)
+          set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)
+      endif()
 
-set(GLEW_USE_STATIC_LIBS ON)
-find_package(GLEW REQUIRED CONFIG)
+      # specify libraries to link with after compilation
+      target_link_libraries(${CMAKE_PROJECT_NAME}
+              PRIVATE
+              glfw
+              ${GLAD_LIBRARY}
+              glm)
 
-set(SRCS
-        main.cpp
-        glad.c
-)
-
-if(APPLE)
-    # create bundle on apple compiles
-    add_executable(main MACOSX_BUNDLE ${SRCS})
-
-    # Set a custom plist file for the app bundle - needed for Mac OS Retina display
-    set_target_properties(main PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
-else()
-    # No WIN32! We don't want WinMain() with GLFW.
-    add_executable(main ${SRCS} main.exe.manifest)
-endif()
-
-target_include_directories(main PUBLIC ../deps)
-target_link_libraries(main PRIVATE GLEW::glew_s glfw -static)
+      install(TARGETS ${CMAKE_PROJECT_NAME}
+              EXPORT ${CMAKE_PROJECT_NAME}-targets
+              RUNTIME DESTINATION bin
+              ARCHIVE DESTINATION lib
+              LIBRARY DESTINATION lib)
